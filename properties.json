@@ -1,0 +1,7 @@
+{
+  "domain": "https://dynatrace.philly",
+  "tenant": "750ca54d-4fb2-4e9b-ab04-fab69ecb0949",
+  "apiToken": "JhpF9EThRhWKFsKR34nTp",
+  "location": "Datacenter 1",
+  "pollingInterval": 1
+}
