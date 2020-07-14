@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 pylint = "*"
+autopep8 = "*"
 
 [packages]
 plugin-sdk = {path = "./plugin_sdk-1.195.148.20200707.160955-py3-none-any.whl"}
