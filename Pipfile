@@ -1,0 +1,13 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+
+[packages]
+plugin-sdk = {path = "./plugin_sdk-1.195.148.20200707.160955-py3-none-any.whl"}
+
+[requires]
+python_version = "3.6"

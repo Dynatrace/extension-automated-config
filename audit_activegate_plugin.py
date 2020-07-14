@@ -27,3 +27,4 @@ class AuditPluginRemote(RemoteBasePlugin):
             return
         self.pollCount = 1
         run_audit(domain, tenant, apiToken, pollingInterval)
+        
