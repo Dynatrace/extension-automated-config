@@ -42,8 +42,6 @@ class AuditPluginRemote(RemoteBasePlugin):
             "GET", auditLogAPI, headers=headers, data=payload, verify=False)
 
         changes = response.json()
-        logging.info("URL USED: " + auditLogAPI)
-        logging.info("GET RESPONSE: " + response.text)
         auditLogs = changes['auditLogs']
         x = 0
         # GET audit log for config changes
@@ -54,6 +52,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 category = str(auditLogs[x]['category'])
                 timestamp = str(auditLogs[x]['timestamp'])
                 entityId = str(auditLogs[x]['entityId'])
+                patch = str(auditLogs[x]['patch'])
                 # If entityId beings with ME_ then proceed to extract the real entityId by replacing the match with nothing
                 if re.match("ME_", entityId) and user != "agent quotas worker":
                     entityId = re.sub(r'(.*)\s', '', entityId)
@@ -70,26 +69,26 @@ class AuditPluginRemote(RemoteBasePlugin):
                             "User": user,
                             "Category": category,
                             "Timestamp": timestamp,
-                            "entityId": entityId
+                            "entityId": entityId,
+                            "Change": patch
                         },
                         "source": "Automated Configuration Audit",
                         "annotationType": "Dynatrace Configuration Change",
                         "annotationDescription": " ",
-                        "description": "Dynatrace Configuration Change"
+                        "description": "Dynatrace Configuration Change",
                     }
                     if is_managed:
                         managed_domain = re.search(
                             r'^(https\:\/\/[^\/]*)', url).group(1)
-                        logging.info(f"DOMAIN FOUND: {managed_domain}")
                         payload['customProperties']['User Link'] = f"{managed_domain}/cmc#cm/users/userdetails;uuid={user}"
                     logging.info(json.dumps(payload))
                     response = requests.request(
                         "POST", eventAPI, json=payload, headers=headers, verify=False)
-                    logging.info("MATCHED: " + user + " " + eventType +
+                    logging.info("AUDIT - MATCHED: " + user + " " + eventType +
                                  " " + category + " " + timestamp + " " + entityId)
-                    logging.info("POST RESPONSE: " + response.text)
+                    logging.info("AUDIT - POST RESPONSE: " + response.text)
             else:
-                logging.info("NOT MATCHED: " + user + " " + eventType +
+                logging.info("AUDIT - NOT MATCHED: " + user + " " + eventType +
                              " " + category + " " + timestamp + " " + entityId)
         else:
-            logging.info("NO RECENT CHANGES FOUND!")
+            logging.info("AUDIT - NO RECENT CHANGES FOUND!")
