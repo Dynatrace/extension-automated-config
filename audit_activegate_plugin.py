@@ -2,39 +2,43 @@ from ruxit.api.base_plugin import RemoteBasePlugin
 import re
 import requests
 import logging
-import json
+import time
+from math import floor
 
 logger = logging.getLogger(__name__)
 
 
 class AuditPluginRemote(RemoteBasePlugin):
-    pollCount = 1
+    start_time = 1
+    end_time = 1
 
     def initialize(self, **kwargs):
         logger.info("Config: %s", self.config)
         config = kwargs['config']
         self.url = config['url'].strip()
         self.apiToken = config['apiToken'].strip()
-        self.pollingInterval = config['pollingInterval']
+        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
+        self.start_time = floor(time.time()*1000) - self.pollingInterval
 
     def query(self, **kwargs):
-        if self.pollCount < self.pollingInterval:
-            self.pollCount += 1
-            return
-        self.pollCount = 1
-        self.run_audit(self.url, self.apiToken, self.pollingInterval)
+        self.end_time = floor(time.time()*1000)
+        if self.end_time - self.start_time >= self.pollingInterval:
+            self.run_audit()
+            logging.info(
+                f"AUDIT - RUN INTERVAL: START -> {self.start_time} END -> {self.end_time}")
+            self.start_time = self.end_time
 
-    def run_audit(self, url, apiToken, timeInterval=5):
-        if url[-1] == '/':
-            url = url[:-1]
+    def run_audit(self):
+        if self.url[-1] == '/':
+            self.url = self.url[:-1]
 
-        is_managed = True if "live.dynatrace.com" not in url else False
-        eventAPI = url + "/api/v1/events"
-        auditLogAPI = url + \
-            f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from=now-{timeInterval}m"
+        is_managed = True if "live.dynatrace.com" not in self.url else False
+        eventAPI = self.url + "/api/v1/events"
+        auditLogAPI = self.url + \
+            f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}"
         payload = {}
         headers = {
-            'Authorization': 'Api-Token ' + apiToken,
+            'Authorization': 'Api-Token ' + self.apiToken,
             'content-type': "application/json"
         }
 
@@ -79,16 +83,14 @@ class AuditPluginRemote(RemoteBasePlugin):
                     }
                     if is_managed:
                         managed_domain = re.search(
-                            r'^(https\:\/\/[^\/]*)', url).group(1)
-                        payload['customProperties']['User Link'] = f"{managed_domain}/cmc#cm/users/userdetails;uuid={user}"
-                    logging.info(json.dumps(payload))
+                            r'^(https\:\/\/[^\/]*)', self.url).group(1)
+                        payload['customProperties'][
+                            'User Link'] = f"{managed_domain}/cmc#cm/users/userdetails;uuid={user}"
                     response = requests.request(
                         "POST", eventAPI, json=payload, headers=headers, verify=False)
-                    logging.info("AUDIT - MATCHED: " + user + " " + eventType +
-                                 " " + category + " " + timestamp + " " + entityId)
-                    logging.info("AUDIT - POST RESPONSE: " + response.text)
+                    logging.info(f"AUDIT - MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
+                    logging.info(f"AUDIT - POST RESPONSE: {response.text}")
             else:
-                logging.info("AUDIT - NOT MATCHED: " + user + " " + eventType +
-                             " " + category + " " + timestamp + " " + entityId)
+                logging.info(f"AUDIT - NOT MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
         else:
             logging.info("AUDIT - NO RECENT CHANGES FOUND!")
