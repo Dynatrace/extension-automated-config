@@ -34,7 +34,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         is_managed = True if "/e/" in self.url else False
         eventAPI = self.url + "/api/v1/events"
         auditLogAPI = self.url + \
-            f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}"
+            f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
         payload = {}
         headers = {
             'Authorization': 'Api-Token ' + self.apiToken,
