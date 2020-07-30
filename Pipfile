@@ -8,7 +8,7 @@ pylint = "*"
 autopep8 = "*"
 
 [packages]
-plugin-sdk = {path = "./plugin_sdk-1.195.148.20200707.160955-py3-none-any.whl"}
+plugin-sdk = {path = "./plugin_sdk-1.199.47.20200729.170225-py3-none-any.whl"}
 
 [requires]
 python_version = "3.6"
