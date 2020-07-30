@@ -8,9 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class AuditPluginRemote(RemoteBasePlugin):
-    start_time = 1
-    end_time = 1
-
     def initialize(self, **kwargs):
         logger.info("Config: %s", self.config)
         config = kwargs['config']
