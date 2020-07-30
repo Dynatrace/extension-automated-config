@@ -1,9 +1,8 @@
 from ruxit.api.base_plugin import RemoteBasePlugin
-import re
+from math import floor
 import requests
 import logging
 import time
-from math import floor
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,9 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.apiToken = config['apiToken'].strip()
         self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
         self.start_time = floor(time.time()*1000) - self.pollingInterval
+        self.verify_ssl = config['verify_ssl']
+        if not self.verify_ssl:
+            requests.packages.urllib3.disable_warnings()
 
     def query(self, **kwargs):
         self.end_time = floor(time.time()*1000)
@@ -32,7 +34,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         if self.url[-1] == '/':
             self.url = self.url[:-1]
 
-        is_managed = True if "live.dynatrace.com" not in self.url else False
+        is_managed = True if "/e/" in self.url else False
         eventAPI = self.url + "/api/v1/events"
         auditLogAPI = self.url + \
             f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}"
@@ -43,7 +45,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         }
 
         response = requests.request(
-            "GET", auditLogAPI, headers=headers, data=payload, verify=False)
+            "GET", auditLogAPI, headers=headers, data=payload, verify=self.verify_ssl)
 
         changes = response.json()
         auditLogs = changes['auditLogs']
@@ -58,8 +60,8 @@ class AuditPluginRemote(RemoteBasePlugin):
                 entityId = str(auditLogs[x]['entityId'])
                 patch = str(auditLogs[x]['patch'])
                 # If entityId beings with ME_ then proceed to extract the real entityId by replacing the match with nothing
-                if re.match("ME_", entityId) and user != "agent quotas worker":
-                    entityId = re.sub(r'(.*)\s', '', entityId)
+                if entityId.startswith("ME_") and user != "agent quotas worker":
+                    entityId = entityId.rsplit(maxsplit=1)[1]
                     payload = {
                         "eventType": "CUSTOM_ANNOTATION",
                         "start": 0,
@@ -82,15 +84,14 @@ class AuditPluginRemote(RemoteBasePlugin):
                         "description": "Dynatrace Configuration Change",
                     }
                     if is_managed:
-                        managed_domain = re.search(
-                            r'^(https\:\/\/[^\/]*)', self.url).group(1)
+                        managed_domain = self.url.split(sep="/e/")[0]
                         payload['customProperties'][
                             'User Link'] = f"{managed_domain}/cmc#cm/users/userdetails;uuid={user}"
                     response = requests.request(
-                        "POST", eventAPI, json=payload, headers=headers, verify=False)
+                        "POST", eventAPI, json=payload, headers=headers, verify=self.verify_ssl)
                     logging.info(f"AUDIT - MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
                     logging.info(f"AUDIT - POST RESPONSE: {response.text}")
             else:
                 logging.info(f"AUDIT - NOT MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
         else:
-            logging.info("AUDIT - NO RECENT CHANGES FOUND!")
+            logging.info(f"AUDIT - NO RECENT CHANGES FOUND! BETWEEN {self.start_time} & {self.end_time}")
