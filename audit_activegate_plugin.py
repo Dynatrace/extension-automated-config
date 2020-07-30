@@ -26,7 +26,7 @@ class AuditPluginRemote(RemoteBasePlugin):
             self.run_audit()
             logging.info(
                 f"AUDIT - RUN INTERVAL: START -> {self.start_time} END -> {self.end_time}")
-            self.start_time = self.end_time
+            self.start_time = self.end_time + 1
 
     def run_audit(self):
         if self.url[-1] == '/':
