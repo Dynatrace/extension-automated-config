@@ -1,6 +1,6 @@
 {
   "name": "custom.remote.python.automated_configuration_audit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "python",
   "requiredAgentVersion": "1.101.0",
   "entity": "CUSTOM_DEVICE",
@@ -25,16 +25,18 @@
   "properties": [
     {"key": "url", "type": "String"},
     {"key": "apiToken", "type": "Password"},
-    {"key": "pollingInterval", "type": "Integer"},
-    {"key": "verify_ssl", "type": "Boolean"}
+    {"key": "pollingInterval", "type": "Integer", "defaultValue": 1},
+    {"key": "verify_ssl", "type": "Boolean", "defaultValue": true},
+    {"key": "timezone", "type": "String", "defaultValue": "UTC"}
   ],
   "configUI": {
     "displayName": "Automated Configuration Audit",
     "properties": [
       {"key": "url", "displayName": "URL of the Dynatrace Tenant", "displayOrder": 1, "displayHint": "For example: https://usg925.dynatrace-managed.com/e/c28e9814-d46d-4b11-8ba0-6f76708e384e"},
-      {"key": "apiToken", "displayName": "API Token with access to V1 metrics and V2 Audit Logs", "displayOrder": 2, "displayHint": "For example: ABllUTJYQwKKQRWSpPIva"},
+      {"key": "apiToken", "displayName": "API Token with V1 metrics, Audit Logs & Read Entities", "displayOrder": 2, "displayHint": "For example: ABllUTJYQwKKQRWSpPIva"},
       {"key": "pollingInterval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
-      {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4}
+      {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4},
+      {"key": "timezone", "displayName": "Timezone", "displayOrder": 5, "displayHint": "For example: America/Chicago"}
     ]
   }
 }
