@@ -2,7 +2,7 @@
 > Dynatrace ActiveGate Extension to automatically flow Dynatrace configuration changes directly into the UI for Applications, Hosts, Services, and Processes.
 
 ## Prerequisites ✔️
-1) Enable "Log all audit-related system events" in your Dynatrace environment
+1) Enable *"Log all audit-related system events"* in your Dynatrace environment
 > - Go to Settings -> Preferences -> Data privacy and security -> Log audit events
 2) Create API Token with V1 metrics, Audit Logs & Read Entities
 
