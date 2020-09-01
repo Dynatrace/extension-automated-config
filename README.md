@@ -1,4 +1,5 @@
 # dt-automated-config-audit 📝
+## WARNING: This is a community plugin and is not officially supported by Dynatrace
 > Dynatrace ActiveGate Extension to automatically flow Dynatrace configuration changes directly into the UI for Applications, Hosts, Services, and Processes.
 
 ## Prerequisites ✔️
