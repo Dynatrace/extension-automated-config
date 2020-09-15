@@ -1,6 +1,6 @@
 {
   "name": "custom.remote.python.automated_configuration_audit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "python",
   "requiredAgentVersion": "1.101.0",
   "entity": "CUSTOM_DEVICE",
@@ -9,7 +9,7 @@
   "source": {
     "package": "audit_activegate_plugin",
     "className": "AuditPluginRemote",
-    "install_requires": ["requests>=2.6.0"],
+    "install_requires": ["requests>=2.6.0", "pytz>=2020.1"],
     "activation": "Remote"
   },
   "metrics": [

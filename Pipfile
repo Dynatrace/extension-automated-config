@@ -9,6 +9,7 @@ autopep8 = "*"
 
 [packages]
 plugin-sdk = {path = "./plugin_sdk-1.199.47.20200729.170225-py3-none-any.whl"}
+pytz = "*"
 
 [requires]
 python_version = "3.6"
