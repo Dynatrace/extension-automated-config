@@ -12,11 +12,12 @@ and logs the changes back to the entities' "Event" feed as an annotation.
 
 '''
 from ruxit.api.base_plugin import RemoteBasePlugin
+from datetime import datetime, timedelta
 from math import floor
+from time import sleep
 import requests
 import logging
-import time
-import os
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +50,9 @@ class AuditPluginRemote(RemoteBasePlugin):
         }
 
         self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
-        self.start_time = floor(time.time()*1000) - self.pollingInterval
 
-        
-        os.environ['TZ'] = config['timezone']
-        time.tzset()
-        logging.info(f" Timezone: {config['timezone']} and ENV: {os.environ['TZ']} and tzname {time.tzname}")
-
+        self.timezone = pytz.timezone(config['timezone'])
+        self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.verify_ssl = config['verify_ssl']
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings()
@@ -73,7 +70,7 @@ class AuditPluginRemote(RemoteBasePlugin):
             response = requests.request(http_method, f"{self.url}{endpoint}", json=json, headers=self.headers, verify=self.verify_ssl)
             if response.status_code == 429:
                 logging.info("AUDIT - RATE LIMITED! SLEEPING...")
-                time.sleep(response.headers['X-RateLimit-Reset']/1000000)
+                sleep(response.headers['X-RateLimit-Reset']/1000000)
             else:
                 break
         return response.json()
@@ -114,7 +111,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 "eventType": eventType,
                 "User": user,
                 "Category": category,
-                "Timestamp": time.strftime("%a, %d %b %Y %H:%M:%S %z", time.localtime(timestamp/1000)),
+                "Timestamp": datetime.now(tz=self.timezone).strftime("%a, %d %b %Y %H:%M:%S %z"),
                 "entityId": entityId,
                 "Change": patch
             },
@@ -183,7 +180,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         '''
         Routine call from the ActiveGate
         '''
-        self.end_time = floor(time.time()*1000)
+        self.end_time = floor(datetime.now().timestamp()*1000)
         if self.end_time - self.start_time >= self.pollingInterval:
             audit_logs = self.get_audit_logs()
             self.process_audit_payload(audit_logs)
