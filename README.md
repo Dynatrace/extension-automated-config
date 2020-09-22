@@ -19,5 +19,9 @@
 ## Screenshot 📸
 ![Screenshot](https://github.com/geoteo/dt-automated-config-audit/blob/master/Automated%20Configuration%20Audit.png)
 
+## Development ⌨️
+- Pipenv the preferred way to install
+- Dependencies that need that is needed is a current plugin-sdk available from your Dynatrace environment and pytz
+
 ## Contact 🤝
 Created by George Teodorescu and Aaron Philipose - feel free to contact us!
