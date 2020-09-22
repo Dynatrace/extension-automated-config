@@ -21,7 +21,7 @@
 
 ## Development ⌨️
 - Pipenv the preferred way to install
-- Dependencies that need that is needed is a current plugin-sdk available from your Dynatrace environment and pytz
+- Dependencies that need that is needed is a current plugin-sdk available from your Dynatrace environment, requests & pytz
 
 ## Contact 🤝
 Created by George Teodorescu and Aaron Philipose - feel free to contact us!
