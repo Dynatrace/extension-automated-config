@@ -1,0 +1,9 @@
+.vscode/
+plugin_deployment/
+*.log
+*.pyc
+
+properties.json
+Pipfile
+Pipfile.lock
+*.whl

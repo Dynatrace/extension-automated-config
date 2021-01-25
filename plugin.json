@@ -1,0 +1,42 @@
+{
+  "name": "custom.remote.python.automated_configuration_audit",
+  "version": "2.0.1",
+  "type": "python",
+  "requiredAgentVersion": "1.101.0",
+  "entity": "CUSTOM_DEVICE",
+  "metricGroup": "tech.Automated_Configuration_Audit",
+  "technologies": ["Automated Configuration Audit"],
+  "source": {
+    "package": "audit_activegate_plugin",
+    "className": "AuditPluginRemote",
+    "install_requires": ["requests>=2.6.0", "pytz>=2020.1"],
+    "activation": "Remote"
+  },
+  "metrics": [
+    {
+      "entity": "CUSTOM_DEVICE",
+      "timeseries": {
+        "key": "rtt",
+        "unit": "MilliSecond",
+        "displayname": "Round-trip time"
+      }
+    }
+  ],
+  "properties": [
+    {"key": "url", "type": "String"},
+    {"key": "apiToken", "type": "Password"},
+    {"key": "pollingInterval", "type": "Integer", "defaultValue": 1},
+    {"key": "verify_ssl", "type": "Boolean", "defaultValue": true},
+    {"key": "timezone", "type": "String", "defaultValue": "UTC"}
+  ],
+  "configUI": {
+    "displayName": "Automated Configuration Audit",
+    "properties": [
+      {"key": "url", "displayName": "URL of the Dynatrace Tenant", "displayOrder": 1, "displayHint": "For example: https://usg925.dynatrace-managed.com/e/c28e9814-d46d-4b11-8ba0-6f76708e384e"},
+      {"key": "apiToken", "displayName": "API Token with V1 metrics, Audit Logs & Read Entities", "displayOrder": 2, "displayHint": "For example: ABllUTJYQwKKQRWSpPIva"},
+      {"key": "pollingInterval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
+      {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4},
+      {"key": "timezone", "displayName": "Timezone", "displayOrder": 5, "displayHint": "For example: America/Chicago"}
+    ]
+  }
+}
