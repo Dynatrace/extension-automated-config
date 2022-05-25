@@ -65,17 +65,17 @@ class AuditPluginRemote(RemoteBasePlugin):
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings()
 
-    def make_api_request(self, http_method, endpoint, json=None):
+    def make_dt_api_request(self, http_method, endpoint, json_payload=None, params=None):
         '''
         Make API calls with proper error handling
 
         @param endpoint - endpoint for Dynatrace API call
-        @param json - dict payload to pass as JSON body
+        @param json_payload - dict payload to pass as JSON body
 
         @return response - response dictionary for valid API call
         '''
         while True:
-            response = requests.request(http_method, f"{self.url}{endpoint}", json=json, headers=self.headers, verify=self.verify_ssl)
+            response = requests.request(http_method, f"{self.url}{endpoint}", json=json_payload, headers=self.headers, verify=self.verify_ssl, params=params)
             if response.status_code == 429:
                 logging.info("AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
