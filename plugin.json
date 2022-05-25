@@ -32,7 +32,7 @@
   "configUI": {
     "displayName": "Automated Configuration Audit",
     "properties": [
-      {"key": "url", "displayName": "URL of the Dynatrace Tenant", "displayOrder": 1, "displayHint": "For example: https://usg925.dynatrace-managed.com/e/c28e9814-d46d-4b11-8ba0-6f76708e384e"},
+      {"key": "url", "displayName": "URL of the Dynatrace Tenant", "displayOrder": 1, "displayHint": "For example: https://abc123.dynatrace-managed.com/e/tenant-id-here"},
       {"key": "apiToken", "displayName": "API Token with V1 metrics, Audit Logs & Read Entities", "displayOrder": 2, "displayHint": "For example: ABllUTJYQwKKQRWSpPIva"},
       {"key": "pollingInterval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
       {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4},
