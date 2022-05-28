@@ -1,9 +1,8 @@
 from re import U
-from ApiHandler import ApiBaseHandler
-from RequestHandler import RequestHandler
+from AuditEntryBaseHandler import AuditEntryBaseHandler
 import logging
 
-class AuditEntryV1Handler(ApiBaseHandler):
+class AuditEntryV1Handler(AuditEntryBaseHandler):
     def extract_info(self, audit_log_entry):
         eventType = str(audit_log_entry['eventType'])
         user = str(audit_log_entry['user'])
@@ -32,5 +31,3 @@ class AuditEntryV1Handler(ApiBaseHandler):
             logging.info(
                 f"AUDIT - NOT MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
 
-    def post_annotations():
-        pass

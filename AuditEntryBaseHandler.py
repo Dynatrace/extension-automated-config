@@ -1,13 +1,9 @@
 from abc import abstractmethod
 import logging
 
-class ApiBaseHandler():
+class AuditEntryBaseHandler():
     @abstractmethod
     def extract_info(self, audit_log_entry):
-        pass
-
-    @abstractmethod
-    def post_annotation():
         pass
 
     def get_processes_from_group(self, process_group_id):
