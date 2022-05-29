@@ -25,7 +25,7 @@
   "properties": [
     {"key": "url", "type": "String"},
     {"key": "apiToken", "type": "Password"},
-    {"key": "pollingInterval", "type": "Integer", "defaultValue": 1},
+    {"key": "polling_interval", "type": "Integer", "defaultValue": 1},
     {"key": "verify_ssl", "type": "Boolean", "defaultValue": true},
     {"key": "timezone", "type": "String", "defaultValue": "UTC"}
   ],
@@ -34,7 +34,7 @@
     "properties": [
       {"key": "url", "displayName": "URL of the Dynatrace Tenant", "displayOrder": 1, "displayHint": "For example: https://abc123.dynatrace-managed.com/e/tenant-id-here"},
       {"key": "apiToken", "displayName": "API Token with V1 metrics, Audit Logs & Read Entities", "displayOrder": 2, "displayHint": "For example: ABllUTJYQwKKQRWSpPIva"},
-      {"key": "pollingInterval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
+      {"key": "polling_interval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
       {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4},
       {"key": "timezone", "displayName": "Timezone", "displayOrder": 5, "displayHint": "For example: America/Chicago"}
     ]
