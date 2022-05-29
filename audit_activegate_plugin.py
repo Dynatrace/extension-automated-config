@@ -19,16 +19,18 @@ This tool tracks monitoring adjustments for monitored entities,
 and logs the changes back to the entities' "Event" feed as an annotation.
 
 '''
-from ruxit.api.base_plugin import RemoteBasePlugin
+# First-Party Imports
+import re
+import logging
 from datetime import datetime
+from math import floor
+# Third-Party Imports
+import pytz
+import requests
+from ruxit.api.base_plugin import RemoteBasePlugin
 from RequestHandler import RequestHandler
 from AuditEntryV1Handler import AuditEntryV1Handler
 from AuditEntryV2Handler import AuditEntryV2Handler
-from math import floor
-import requests
-import logging
-import pytz
-import re
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -44,14 +46,19 @@ class AuditPluginRemote(RemoteBasePlugin):
 
     @param url - Dynatrace Tenant URL
     @param apiToken - API Token for Dynatrace Tenant. Permissions - Event Feed (v1), Read Audit Logs,  Read Monitored Entities (v2)
-    @param pollingInterval - How often to retreive Audit Logs from server (in minutes)
+    @param polling_interval - How often to retreive Audit Logs from server (in minutes)
     @param verify_ssl - Boolean to choose to validate the SSL certificate of the server
 
     '''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.start_time=floor(datetime.now().timestamp()*1000) - self.polling_interval
+        self.end_time=None
+
     def initialize(self, **kwargs):
         '''
         Initialize the plugin with variables provided by user in the UI
-        
+
         @param config - dictionary of all parameters needed for the class (listed in class)
         '''
         logger.info("Config: %s", self.config)
@@ -65,13 +72,14 @@ class AuditPluginRemote(RemoteBasePlugin):
             'Authorization': 'Api-Token ' + config['apiToken'].strip(),
         }
 
-        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
+        self.polling_interval = int(config['polling_interval']) * 60 * 1000
 
         self.timezone = pytz.timezone(config['timezone'])
-        self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
+        self.start_time = floor(datetime.now().timestamp()*1000) - self.polling_interval
+        self.end_time = None
         self.verify_ssl = config['verify_ssl']
         if not self.verify_ssl:
-            requests.packages.urllib3.disable_warnings()
+            requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
     def get_audit_logs(self):
         '''
@@ -80,7 +88,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         @return audit_logs - List of changes recorded from the audit API
         '''
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
-        audit_log_endpoint = f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
+        audit_log_endpoint = \
+                f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
 
@@ -99,6 +108,19 @@ class AuditPluginRemote(RemoteBasePlugin):
             return 2
         return 0
 
+    def is_system_user(
+            self,
+            user: str
+    ) -> bool:
+        """Checks if user from the audit is a system user
+
+        Args:
+            user (str): User string
+
+        Returns:
+            bool: If user is a detected system user
+        """
+        return True if re.match("^\\w+ \\w+ \\w+$", user) else False
 
     def process_audit_payload(self, audit_logs):
         '''
@@ -111,21 +133,28 @@ class AuditPluginRemote(RemoteBasePlugin):
         audit_v2_entry = AuditEntryV2Handler()
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         for audit_log_entry in audit_logs:
+            if self.is_system_user(str(audit_log_entry['user'])):
+                continue
             api_version = self.get_api_version(audit_log_entry)
             if api_version == 1:
                 request_params=audit_v1_entry.extract_info(audit_log_entry, request_handler)
             elif api_version == 2:
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
-                logger.info(f" {audit_log_entry['logId']} ENTRY NOT MATCHED")
-            request_handler.post_annotations(request_params['entityId'], request_params['properties'])
-            
+                log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
+                logger.info('%(log_id)s ENTRY NOT MATCHED')
+
+            request_handler.post_annotations(
+                    request_params['entityId'],
+                    request_params['properties']
+            )
+
     def query(self, **kwargs):
         '''
         Routine call from the ActiveGate
         '''
         self.end_time = floor(datetime.now().timestamp()*1000)
-        if self.end_time - self.start_time >= self.pollingInterval:
+        if self.end_time - self.start_time >= self.polling_interval:
             audit_logs = self.get_audit_logs()
             self.process_audit_payload(audit_logs)
             self.start_time = self.end_time + 1
