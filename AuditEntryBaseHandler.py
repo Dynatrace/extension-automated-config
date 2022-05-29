@@ -1,6 +1,14 @@
 from RequestHandler import RequestHandler
 import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+file_handler = logging.FileHandler('audit_config_auditbasehandler.log')
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 class AuditEntryBaseHandler():
     '''
     Base Class for Audit Entry to be Processed and Pushed.
@@ -12,6 +20,7 @@ class AuditEntryBaseHandler():
         category = str(audit_log_entry['category'])
         timestamp = int(audit_log_entry['timestamp'])
         patch = str(audit_log_entry['patch'])
+        log_id = str(audit_log_entry['logId'])
         # Adding placeholder to reseverve order in dict
         annotation_data = {
             'properties' : {
@@ -20,6 +29,7 @@ class AuditEntryBaseHandler():
               "category" : category,
               "timestamp": timestamp,
               "patch" : patch,
+              "logId": log_id,
             }
         }
         return annotation_data
@@ -32,11 +42,10 @@ class AuditEntryBaseHandler():
 
         @return pgi_list - List of Process Group Instances that belong to Process Group
         '''
-        logging.info(f"Entity ID: {process_group_id}")
+        logger.info(f"Entity ID: {process_group_id}")
         monitored_entities_endpoint = f"/api/v2/entities/{process_group_id}?fields=toRelationships.isInstanceOf"
         pg_details = request_handler.get_dt_api_json(monitored_entities_endpoint)
         pgi_list = []
-        logging.info(f"PG JSON - {pg_details}")
         for relationship in pg_details['toRelationships']['isInstanceOf']:
             if relationship['type'] == "PROCESS_GROUP_INSTANCE":
                 pgi_list.append(relationship['id'])
@@ -49,6 +58,5 @@ class AuditEntryBaseHandler():
         if len(all_instances_str) > 0:
             all_instances_str = all_instances_str[:-1]
         pgi_list_str = f"{all_instances_str}"
-        logging.info(f"PGI LIST: {pgi_list}")
-        logging.info(f"PGI STRING: {pgi_list_str}")
+        logger.info(f"PGI STRING: {pgi_list_str}")
         return pgi_list_str

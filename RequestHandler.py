@@ -2,6 +2,14 @@ from time import sleep
 import requests
 import logging
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+file_handler = logging.FileHandler('audit_config_requesthandler.log')
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+
 class RequestHandler(object):
     def __init__(self, base_url, headers, verify_ssl=True):
         self.url = base_url
@@ -31,7 +39,7 @@ class RequestHandler(object):
                     params=params
             )
             if response.status_code == 429:
-                logging.info("AUDIT - RATE LIMITED! SLEEPING...")
+                logger.info("AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
             else:
                 break
@@ -48,6 +56,6 @@ class RequestHandler(object):
             "properties": properties
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
-        logging.info(f"Annotation for {entity_id} : {response.status_code}")
-        logging.info(f"Requests:\n{response.request}")
-        logging.info(f"{response.text}")
+        logger.info(f"Annotation for {entity_id} : {response.status_code}")
+        logger.debug(f"Requests:\n{response.request}")
+        logger.debug(f"{response.text}")
