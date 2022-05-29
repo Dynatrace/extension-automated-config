@@ -23,8 +23,8 @@ from ruxit.api.base_plugin import RemoteBasePlugin
 from datetime import datetime
 from RequestHandler import RequestHandler
 from AuditEntryV1Handler import AuditEntryV1Handler
+from AuditEntryV2Handler import AuditEntryV2Handler
 from math import floor
-from time import sleep
 import requests
 import logging
 import pytz
@@ -76,53 +76,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         '''
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         audit_log_endpoint = f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
-        changes = request_handler.get_dt_api_json("GET", audit_log_endpoint)
+        changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
-
-    def post_annotations(self, eventType, user, category, timestamp, entityId, patch):
-        '''
-        Post annotation to event feed for the provided EntityID
-
-        @param eventType - Type of event that triggered Audit Log (CREATE/UPDATE)
-        @param user - User that made the action
-        @param category - Audit Category
-        @param timestamp - Unix Epoch time when the change was made
-        @param entityId - Entity that was affected by the creation/update
-        @param patch - Exact option or feature that was changed and it's old value
-
-        '''
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
-        is_managed = True if "/e/" in self.url else False
-        event_endpoint = "/api/v1/events"
-        payload = {
-            "eventType": "CUSTOM_ANNOTATION",
-            "start": 0,
-            "end": 0,
-            "timeoutMinutes": 0,
-            "attachRules": {
-                "entityIds": [entityId]
-            },
-            "customProperties": {
-                "eventType": eventType,
-                "User": user,
-                "Category": category,
-                "Timestamp": datetime.now(tz=self.timezone).strftime("%a, %d %b %Y %H:%M:%S %z"),
-                "entityId": entityId,
-                "Change": patch
-            },
-            "source": "Automated Configuration Audit",
-            "annotationType": "Dynatrace Configuration Change",
-            "annotationDescription": " ",
-            "description": "Dynatrace Configuration Change",
-        }
-        if is_managed:
-            managed_domain = self.url.split(sep="/e/")[0]
-            payload['customProperties'][
-                'User Link'] = f"{managed_domain}/cmc#cm/users/userdetails;uuid={user}"
-        response = request_handler.get_dt_api_json("POST", event_endpoint, json_payload=payload)
-        logging.info(
-            f"AUDIT - MATCHED: {user} {eventType} {category} {timestamp} {entityId}")
-        logging.info(f"AUDIT - POST RESPONSE: {response}")
 
     def get_processes_from_group(self, process_group_id):
         '''
@@ -135,13 +90,24 @@ class AuditPluginRemote(RemoteBasePlugin):
         logging.info(f"Entity ID: {process_group_id}")
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         monitored_entities_endpoint = f"/api/v2/entities/{process_group_id}?fields=toRelationships.isInstanceOf"
-        pg_details = request_handler.get_dt_api_json("GET", monitored_entities_endpoint)
+        pg_details = request_handler.get_dt_api_json(monitored_entities_endpoint)
         pgi_list = []
         logging.info(f"PG JSON - {pg_details}")
         for relationship in pg_details['toRelationships']['isInstanceOf']:
             if relationship['type'] == "PROCESS_GROUP_INSTANCE":
                 pgi_list.append(relationship['id'])
         return pgi_list
+
+    def process_group_instance_to_entity_str(pgi_list):
+        all_instances_str = ""
+        for process_group_instance in pgi_list:
+            all_instances_str = f"{all_instances_str}\"{process_group_instance}\","
+        if len(all_instances_str) > 0:
+            all_instances_str = all_instances_str[:-1]
+        pgi_list_str = f"entityId (\"{all_instances_str}\")"
+        logging.info(f"PGI LIST: {pgi_list}")
+        logging.info(f"PGI STRING: {pgi_list_str}")
+        return pgi_list_str
 
     def get_api_version(self, audit_log_entry):
         '''
@@ -150,11 +116,11 @@ class AuditPluginRemote(RemoteBasePlugin):
         @param audit_log_entry
         '''
 
-        entityType = str(audit_log_entry)
-        if re.match("^ME_\\w+\\: \\w+", entityType):
+        entity_id_entry = str(audit_log_entry['entityId'])
+        if re.match("^ME_\\w+\\: \\w+", entity_id_entry):
             return 1
-        if re.match ("[a-z\\:\\[\\]\\.]", entityType):
-            print (entityType, "matched API V2")
+        if re.match ("[a-z\\:\\[\\]\\.]", entity_id_entry):
+            print (entity_id_entry, "matched API V2")
             return 2
         return 0
 
@@ -166,12 +132,18 @@ class AuditPluginRemote(RemoteBasePlugin):
         @param audit_logs - list of audit records returned from the API
         '''
         audit_v1_entry = AuditEntryV1Handler()
+        audit_v2_entry = AuditEntryV2Handler()
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         for audit_log_entry in audit_logs:
-            request_params=audit_v1_entry.extract_info(audit_log_entry)
+            api_version = self.get_api_version(audit_log_entry)
+            if api_version == 1:
+                request_params=audit_v1_entry.extract_info(audit_log_entry, request_handler)
+            elif api_version == 2:
+                request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
+            else:
+                logging.info(f" {audit_log_entry['logId']} ENTRY NOT MATCHED")
             request_handler.post_annotations(request_params['entityId'], request_params['properties'])
             
-
     def query(self, **kwargs):
         '''
         Routine call from the ActiveGate

@@ -1,18 +1,20 @@
+from pydoc import resolve
 from time import sleep
 import requests
 import logging
+import json
 
-class RequestHandler:
+class RequestHandler(object):
     def __init__(self, base_url, headers, verify_ssl=True):
         self.url = base_url
         self.headers = headers
         self.verify_ssl = verify_ssl
 
-    def get_dt_api_json(self, http_method, endpoint, json_payload=None, params=None):
+    def get_dt_api_json(self, endpoint, json_payload=None, params=None) -> dict:
         response = self.make_dt_api_request("GET", endpoint, json_payload, params)
         return response.json()
 
-    def make_dt_api_request(self, http_method, endpoint, json_payload=None, params=None):
+    def make_dt_api_request(self, http_method, endpoint, json_payload=None, params=None) -> requests.Response:
         '''
         Make API calls with proper error handling
 
@@ -22,7 +24,14 @@ class RequestHandler:
         @return response - response dictionary for valid API call
         '''
         while True:
-            response = requests.request(http_method, f"{self.url}{endpoint}", json=json_payload, headers=self.headers, verify=self.verify_ssl, params=params)
+            response = requests.request(
+                    http_method,
+                    f"{self.url}{endpoint}",
+                    json=json_payload,
+                    headers=self.headers,
+                    verify=self.verify_ssl,
+                    params=params
+            )
             if response.status_code == 429:
                 logging.info("AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
@@ -30,15 +39,17 @@ class RequestHandler:
                 break
         return response
 
-    def post_annotations(self, entity_id: str, properties: dict):
+    def post_annotations(self, entity_id: str, properties: dict) -> None:
         
         endpoint = "/api/v2/events/ingest"
         json_payload = {
             "eventType": "CUSTOM_ANNOTATION",
             "title" : "Automated Configuration Audit2",
             "timeout": 0,
-            "entitySelector": f"entityId (\"{entity_id}\")",
+            "entitySelector": f"entityId ({entity_id})", # LEAVING OFF - REMOVE QUOTES FROM HERE AND APPEND IT IN ENTRY HANDLER
             "properties": properties
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
         logging.info(f"Annotation for {entity_id} : {response.status_code}")
+        logging.info(f"Requests:\n{response.request}")
+        logging.info(f"{response.text}")
