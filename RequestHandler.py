@@ -52,10 +52,10 @@ class RequestHandler(object):
             "eventType": "CUSTOM_ANNOTATION",
             "title" : "Automated Configuration Audit2",
             "timeout": 0,
-            "entitySelector": f"entityId ({entity_id})", # LEAVING OFF - REMOVE QUOTES FROM HERE AND APPEND IT IN ENTRY HANDLER
+            "entitySelector": f"entityId ({entity_id})",
             "properties": properties
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
-        logger.info(f"Annotation for {entity_id} : {response.status_code}")
+        logger.info(f"Annotation for LOG_ID:{json_payload['properties']['logId']},ENTITY_ID:{entity_id} : {response.status_code}")
         logger.debug(f"Requests:\n{response.request}")
         logger.debug(f"{response.text}")
