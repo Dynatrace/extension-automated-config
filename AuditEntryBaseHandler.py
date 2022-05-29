@@ -14,10 +14,8 @@ class AuditEntryBaseHandler():
         patch = str(audit_log_entry['patch'])
         # Adding placeholder to reseverve order in dict
         annotation_data = {
-            "entityId": "TO BE FILLED",
             'properties' : {
               "eventType" : event_type,
-              "entityType": "TO BE FILLED",
               "user" : user,
               "category" : category,
               "timestamp": timestamp,
