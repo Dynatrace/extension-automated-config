@@ -31,7 +31,12 @@ import pytz
 import re
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
+file_handler = logging.FileHandler('audit_config_main.log')
+formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 class AuditPluginRemote(RemoteBasePlugin):
     '''
@@ -79,36 +84,6 @@ class AuditPluginRemote(RemoteBasePlugin):
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
 
-    def get_processes_from_group(self, process_group_id):
-        '''
-        Get all the Process Group Instances from a Process Group change
-
-        @param process_group_id - Process Group that needs to be investigated
-
-        @return pgi_list - List of Process Group Instances that belong to Process Group
-        '''
-        logging.info(f"Entity ID: {process_group_id}")
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
-        monitored_entities_endpoint = f"/api/v2/entities/{process_group_id}?fields=toRelationships.isInstanceOf"
-        pg_details = request_handler.get_dt_api_json(monitored_entities_endpoint)
-        pgi_list = []
-        logging.info(f"PG JSON - {pg_details}")
-        for relationship in pg_details['toRelationships']['isInstanceOf']:
-            if relationship['type'] == "PROCESS_GROUP_INSTANCE":
-                pgi_list.append(relationship['id'])
-        return pgi_list
-
-    def process_group_instance_to_entity_str(pgi_list):
-        all_instances_str = ""
-        for process_group_instance in pgi_list:
-            all_instances_str = f"{all_instances_str}\"{process_group_instance}\","
-        if len(all_instances_str) > 0:
-            all_instances_str = all_instances_str[:-1]
-        pgi_list_str = f"entityId (\"{all_instances_str}\")"
-        logging.info(f"PGI LIST: {pgi_list}")
-        logging.info(f"PGI STRING: {pgi_list_str}")
-        return pgi_list_str
-
     def get_api_version(self, audit_log_entry):
         '''
         Identify processing method required by parsing entry for API version used
@@ -131,6 +106,7 @@ class AuditPluginRemote(RemoteBasePlugin):
 
         @param audit_logs - list of audit records returned from the API
         '''
+        logger.addHandler(file_handler)
         audit_v1_entry = AuditEntryV1Handler()
         audit_v2_entry = AuditEntryV2Handler()
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
@@ -141,7 +117,7 @@ class AuditPluginRemote(RemoteBasePlugin):
             elif api_version == 2:
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
-                logging.info(f" {audit_log_entry['logId']} ENTRY NOT MATCHED")
+                logger.info(f" {audit_log_entry['logId']} ENTRY NOT MATCHED")
             request_handler.post_annotations(request_params['entityId'], request_params['properties'])
             
     def query(self, **kwargs):
