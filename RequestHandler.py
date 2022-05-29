@@ -1,8 +1,6 @@
-from pydoc import resolve
 from time import sleep
 import requests
 import logging
-import json
 
 class RequestHandler(object):
     def __init__(self, base_url, headers, verify_ssl=True):

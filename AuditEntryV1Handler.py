@@ -1,7 +1,5 @@
 from RequestHandler import RequestHandler
 from AuditEntryBaseHandler import AuditEntryBaseHandler
-import logging
-
 
 class AuditEntryV1Handler(AuditEntryBaseHandler):
     def extract_info(self, audit_log_entry, request_handler : 'RequestHandler'):
