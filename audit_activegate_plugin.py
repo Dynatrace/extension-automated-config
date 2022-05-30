@@ -57,11 +57,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.end_time=None
 
     def initialize(self, **kwargs):
-        '''
-        Initialize the plugin with variables provided by user in the UI
-
-        @param config - dictionary of all parameters needed for the class (listed in class)
-        '''
+        """Initialize the plugin with variables provided by user in the UI
+        """
         logger.info("Config: %s", self.config)
         config = kwargs['config']
 
@@ -94,13 +91,15 @@ class AuditPluginRemote(RemoteBasePlugin):
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
 
-    def get_api_version(self, audit_log_entry):
-        '''
-        Identify processing method required by parsing entry for API version used
+    def get_api_version(self, audit_log_entry: dict) -> int:
+        """Identify processing method required by parsing entry for API version used
 
-        @param audit_log_entry
-        '''
+        Args:
+            audit_log_entry (dict): Single audit entry
 
+        Returns:
+            int: API Version of call (0 if none)
+        """
         entity_id_entry = str(audit_log_entry['entityId'])
         if re.match("^ME_\\w+\\: \\w+", entity_id_entry):
             return 1
@@ -121,7 +120,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             bool: If user is a detected system user
         """
-        return True if re.match("^\\w+ \\w+ \\w+$", user) else False
+        return bool(re.match("^\\w+ \\w+ \\w+$", user))
 
     def process_audit_payload(self, audit_logs: List[dict]) -> None:
         """Process audit list and trigger annotation posting for matching Monitored Entities
