@@ -24,6 +24,7 @@ import re
 import logging
 from datetime import datetime
 from math import floor
+from typing import List
 # Third-Party Imports
 import pytz
 import requests
@@ -122,12 +123,12 @@ class AuditPluginRemote(RemoteBasePlugin):
         """
         return True if re.match("^\\w+ \\w+ \\w+$", user) else False
 
-    def process_audit_payload(self, audit_logs):
-        '''
-        Process audit list and trigger annotation posting for matching Monitored Entities
+    def process_audit_payload(self, audit_logs: List[dict]) -> None:
+        """Process audit list and trigger annotation posting for matching Monitored Entities
 
-        @param audit_logs - list of audit records returned from the API
-        '''
+        Args:
+            audit_logs (List[dict]): list of audit records returned from the API
+        """
         logger.addHandler(file_handler)
         audit_v1_entry = AuditEntryV1Handler()
         audit_v2_entry = AuditEntryV2Handler()
