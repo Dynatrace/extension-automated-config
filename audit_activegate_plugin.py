@@ -87,7 +87,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         """
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         audit_log_endpoint = \
-                f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
+                f"/api/v2/auditlogs?filter=category(\"CONFIG\")&from={self.start_time}&to={self.end_time}&sort=timestamp"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
 
