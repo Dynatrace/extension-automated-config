@@ -81,12 +81,12 @@ class AuditPluginRemote(RemoteBasePlugin):
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
-    def get_audit_logs(self):
-        '''
-        Retrieve API logs from the tenant
+    def get_audit_logs(self) -> dict:
+        """Pull Audit Logs From API
 
-        @return audit_logs - List of changes recorded from the audit API
-        '''
+        Returns:
+            dict: Audit log entrys recorded from the audit API
+        """
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         audit_log_endpoint = \
                 f"/api/v2/auditlogs?filter=eventType(CREATE,UPDATE)&from={self.start_time}&to={self.end_time}&sort=timestamp"
