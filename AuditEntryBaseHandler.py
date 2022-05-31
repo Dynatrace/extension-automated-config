@@ -8,11 +8,6 @@ from RequestHandler import RequestHandler # pylint: disable=unused-import
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler('audit_config_auditbasehandler.log')
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 class AuditEntryBaseHandler():
     '''
     Base Class for Audit Entry to be Processed and Pushed.
@@ -65,7 +60,7 @@ class AuditEntryBaseHandler():
         Returns:
             List[str]: List of progress group instances from progress group entity
         """
-        logger.info("Entity ID: %s", process_group_id)
+        logger.info("[AuditEntryBase] Entity ID: %s", process_group_id)
         monitored_entities_endpoint = \
                 f"/api/v2/entities/{process_group_id}?fields=toRelationships.isInstanceOf"
         pg_details = request_handler.get_dt_api_json(monitored_entities_endpoint)

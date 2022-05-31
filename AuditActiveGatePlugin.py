@@ -36,11 +36,6 @@ from AuditEntryV2Handler import AuditEntryV2Handler
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler('audit_config_main.log')
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 class AuditPluginRemote(RemoteBasePlugin):
     """Main class for the plugin
 
@@ -134,7 +129,6 @@ class AuditPluginRemote(RemoteBasePlugin):
         Args:
             audit_logs (List[dict]): list of audit records returned from the API
         """
-        logger.addHandler(file_handler)
         audit_v1_entry = AuditEntryV1Handler()
         audit_v2_entry = AuditEntryV2Handler()
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
@@ -148,7 +142,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
-                logger.info('%(log_id)s ENTRY NOT MATCHED')
+                logger.info('[Main] %(log_id)s ENTRY NOT MATCHED')
 
             request_handler.post_annotations(
                     request_params['entityId'],

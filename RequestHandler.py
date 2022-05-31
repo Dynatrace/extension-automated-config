@@ -7,11 +7,6 @@ import requests
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler('audit_config_requesthandler.log')
-formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
 class RequestHandler():
     """Request Handler for making API calls to Dynatrace
     """
@@ -65,7 +60,7 @@ class RequestHandler():
                     params=params
             )
             if response.status_code == 429:
-                logger.info("AUDIT - RATE LIMITED! SLEEPING...")
+                logger.info("[RequestHandler] AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
             else:
                 break
@@ -88,10 +83,10 @@ class RequestHandler():
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
         logger.info(
-                "Annotation for LOG_ID: %s,ENTITY_ID:%s : %s",
+                "[RequestHandler] Annotation for LOG_ID: %s,ENTITY_ID:%s : %s",
                 json_payload['properties']['logId'],
                 entity_id,
                 response.status_code
         )
-        logger.debug("Requests: %s", response.request)
-        logger.debug("Request Text: %s", response.text)
+        logger.debug("[RequestHandler] Requests: %s", response.request)
+        logger.debug("[RequestHandler] Request Text: %s", response.text)
