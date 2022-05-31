@@ -42,15 +42,20 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 class AuditPluginRemote(RemoteBasePlugin):
-    '''
-    Main class for the plugin
+    """Main class for the plugin
 
-    @param url - Dynatrace Tenant URL
-    @param apiToken - API Token for Dynatrace Tenant. Permissions - Event Feed (v1), Read Audit Logs,  Read Monitored Entities (v2)
-    @param polling_interval - How often to retreive Audit Logs from server (in minutes)
-    @param verify_ssl - Boolean to choose to validate the SSL certificate of the server
+    Plugin-Provided Args:
+        url (str): Dynatrace Tenant URL
+        apiToken (str): API Token for Dynatrace Tenant.
+                        Permissions - Read Events(v2),Read Audit Logs,Read Monitored Entities(v2)
+        polling_interval (int): How often to retreive Audit Logs from server (in minutes)
+        verify_ssl (bool): Boolean to choose to validate the SSL certificate of the server
+    Args:
+        RemoteBasePlugin (RemoteBasePlugin): Base Class for Dynatrace Plugin
 
-    '''
+    Returns:
+        None
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.start_time=floor(datetime.now().timestamp()*1000) - self.polling_interval
@@ -86,8 +91,9 @@ class AuditPluginRemote(RemoteBasePlugin):
             dict: Audit log entrys recorded from the audit API
         """
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
-        audit_log_endpoint = \
-                f"/api/v2/auditlogs?filter=category(\"CONFIG\")&from={self.start_time}&to={self.end_time}&sort=timestamp"
+        audit_log_endpoint = "/api/v2/auditlogs?" \
+                + "filter=category(\"CONFIG\")&sort=timestamp" \
+                + f"&from={self.start_time}&to={self.end_time}"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         return changes['auditLogs']
 
