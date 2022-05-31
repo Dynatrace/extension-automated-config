@@ -48,7 +48,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         url (str): Dynatrace Tenant URL
         apiToken (str): API Token for Dynatrace Tenant.
                         Permissions - Read Events(v2),Read Audit Logs,Read Monitored Entities(v2)
-        polling_interval (int): How often to retreive Audit Logs from server (in minutes)
+        pollingInterval (int): How often to retreive Audit Logs from server (in minutes)
         verify_ssl (bool): Boolean to choose to validate the SSL certificate of the server
     Args:
         RemoteBasePlugin (RemoteBasePlugin): Base Class for Dynatrace Plugin
@@ -58,7 +58,7 @@ class AuditPluginRemote(RemoteBasePlugin):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.start_time=floor(datetime.now().timestamp()*1000) - self.polling_interval
+        self.start_time=floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time=None
 
     def initialize(self, **kwargs):
@@ -75,10 +75,10 @@ class AuditPluginRemote(RemoteBasePlugin):
             'Authorization': 'Api-Token ' + config['apiToken'].strip(),
         }
 
-        self.polling_interval = int(config['polling_interval']) * 60 * 1000
+        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
 
         self.timezone = pytz.timezone(config['timezone'])
-        self.start_time = floor(datetime.now().timestamp()*1000) - self.polling_interval
+        self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time = None
         self.verify_ssl = config['verify_ssl']
         if not self.verify_ssl:
@@ -160,7 +160,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         Routine call from the ActiveGate
         '''
         self.end_time = floor(datetime.now().timestamp()*1000)
-        if self.end_time - self.start_time >= self.polling_interval:
+        if self.end_time - self.start_time >= self.pollingInterval:
             audit_logs = self.get_audit_logs()
             self.process_audit_payload(audit_logs)
             self.start_time = self.end_time + 1
