@@ -1,6 +1,9 @@
 # dt-automated-config-audit 📝
 With multiple Dyantrace admins managing a tenant, It can often be difficult to track accountability of Dynatrace configuration changes. The Dynatrace Automated Configuration Audit uses the flexible Dynatrace API to report configuration changes made to Dynatrace Entities and reports it into the Event feed of the entity altered. This allows for a clear visalization and accountability of changes to you Applications, Services, Processes and Hosts. This is an ActiveGate extension that only needs to sit on 1 Dynatrace ActiveGate to operate.
 
+## What's New 💡
+Version 3.0.0 brings support for audit log that use the newer v2 format to now be posted to the log. In addition, the structure has now paved the way for a future update - Automated GitHub backups (stay tuned). Please note, the update changes the API permissions required. For version 4 released, even more scope will be needed to support newer features.
+
 ## Prerequisites ✔️
 1) Enable *"Log all audit-related system events"* in your Dynatrace environment
 > - Go to Settings -> Preferences -> Data privacy and security -> Log audit events
