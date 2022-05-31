@@ -7,7 +7,7 @@
   "metricGroup": "tech.Automated_Configuration_Audit",
   "technologies": ["Automated Configuration Audit"],
   "source": {
-    "package": "audit_activegate_plugin",
+    "package": "AuditActiveGatePlugin",
     "className": "AuditPluginRemote",
     "install_requires": ["requests>=2.6.0", "pytz>=2020.1"],
     "activation": "Remote"
