@@ -1,6 +1,8 @@
+"""Request Handler for making API calls to Dynatrace
+"""
 from time import sleep
-import requests
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -10,17 +12,40 @@ formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-class RequestHandler(object):
+class RequestHandler():
+    """Request Handler for making API calls to Dynatrace
+    """
     def __init__(self, base_url, headers, verify_ssl=True):
         self.url = base_url
         self.headers = headers
         self.verify_ssl = verify_ssl
 
-    def get_dt_api_json(self, endpoint, json_payload=None, params=None) -> dict:
+    def get_dt_api_json(
+            self,
+            endpoint: str,
+            json_payload: dict = None,
+            params: dict = None
+    ) -> dict:
+        """Get JSON response from DT API
+
+        Args:
+            endpoint (str): Endpoint to query from Dynatrace
+            json_payload (dict, optional): JSON data to send. Defaults to None.
+            params (dict, optional): Param data to send. Defaults to None.
+
+        Returns:
+            dict: JSON response from Dynatrace API endpoint
+        """
         response = self.make_dt_api_request("GET", endpoint, json_payload, params)
         return response.json()
 
-    def make_dt_api_request(self, http_method, endpoint, json_payload=None, params=None) -> requests.Response:
+    def make_dt_api_request(
+            self,
+            http_method,
+            endpoint,
+            json_payload=None,
+            params=None
+    ) -> requests.Response:
         '''
         Make API calls with proper error handling
 
@@ -28,6 +53,7 @@ class RequestHandler(object):
         @param json_payload - dict payload to pass as JSON body
 
         @return response - response dictionary for valid API call
+        #TODO - ADAPT DOCSTRING TO NEW FORMAT
         '''
         while True:
             response = requests.request(
@@ -46,7 +72,12 @@ class RequestHandler(object):
         return response
 
     def post_annotations(self, entity_id: str, properties: dict) -> None:
-        
+        """Post annoations to Dynatrace entity event log
+
+        Args:
+            entity_id (str): Entity ID to post update
+            properties (dict): All info needed to post in the annotation
+        """
         endpoint = "/api/v2/events/ingest"
         json_payload = {
             "eventType": "CUSTOM_ANNOTATION",
@@ -56,6 +87,11 @@ class RequestHandler(object):
             "properties": properties
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
-        logger.info(f"Annotation for LOG_ID:{json_payload['properties']['logId']},ENTITY_ID:{entity_id} : {response.status_code}")
-        logger.debug(f"Requests:\n{response.request}")
-        logger.debug(f"{response.text}")
+        logger.info(
+                "Annotation for LOG_ID: %s,ENTITY_ID:%s : %s",
+                json_payload['properties']['logId'],
+                entity_id,
+                response.status_code
+        )
+        logger.debug("Requests: %s", response.request)
+        logger.debug("Request Text: %s", response.text)

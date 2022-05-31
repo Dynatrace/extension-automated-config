@@ -20,17 +20,17 @@ class AuditEntryBaseHandler():
     '''
     def extract_info(
             self,
-            audit_log_entry: str,
+            audit_log_entry: dict,
             request_handler : 'RequestHandler' # pylint: disable=unused-argument
     ) -> dict:
         """Extract info for annotations and processing from audit entry
 
         Args:
-            audit_log_entry (str): _description_
-            request_handler (RequestHandler): _description_
+            audit_log_entry (dict): singular audit log entry from audit list
+            request_handler (RequestHandler): Request Handler to use in case expansion is needed
 
         Returns:
-            _type_: _description_
+            dict: dict with properties dict nested
         """
         event_type = str(audit_log_entry['eventType'])
         user = str(audit_log_entry['user'])
