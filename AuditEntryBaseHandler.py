@@ -65,7 +65,7 @@ class AuditEntryBaseHandler():
         Returns:
             List[str]: List of progress group instances from progress group entity
         """
-        logger.info("Entity ID: %(process_group_id)s")
+        logger.info("Entity ID: %s", process_group_id)
         monitored_entities_endpoint = \
                 f"/api/v2/entities/{process_group_id}?fields=toRelationships.isInstanceOf"
         pg_details = request_handler.get_dt_api_json(monitored_entities_endpoint)
@@ -93,7 +93,7 @@ class AuditEntryBaseHandler():
         if len(all_instances_str) > 0:
             all_instances_str = all_instances_str[:-1]
         pgi_list_str = f"{all_instances_str}"
-        logger.info("PGI STRING: %(pgi_list_str)s")
+        logger.info("PGI STRING: %s", pgi_list_str)
         return pgi_list_str
 
     def get_all_entities(
