@@ -76,7 +76,7 @@ class RequestHandler():
         endpoint = "/api/v2/events/ingest"
         json_payload = {
             "eventType": "CUSTOM_ANNOTATION",
-            "title" : "Automated Configuration Audit2",
+            "title" : "Automated Configuration Audit",
             "timeout": 0,
             "entitySelector": f"entityId ({entity_id})",
             "properties": properties
