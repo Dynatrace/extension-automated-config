@@ -7,7 +7,7 @@ Version 3.0.0 brings support for audit log that use the newer v2 format to now b
 ## Prerequisites ✔️
 1) Enable *"Log all audit-related system events"* in your Dynatrace environment
 > - Go to Settings -> Preferences -> Data privacy and security -> Log audit events
-2) Create API Token with auditLogs.read, entities.read and events.ingest permissiones
+2) Create API Token with auditLogs.read, entities.read and events.ingest permissions
     NOTE: In future versions more permissions will be required, including ReadConfig and DataExport
 
 ## Installation 🚀
