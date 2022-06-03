@@ -56,7 +56,8 @@ class AuditEntryBaseHandler():
               "timestamp": timestamp,
               "patch" : patch,
               "logId": log_id,
-            }
+            },
+            'startTime': timestamp,
         }
         return annotation_data
 

@@ -146,7 +146,8 @@ class AuditPluginRemote(RemoteBasePlugin):
 
             request_handler.post_annotations(
                     request_params['entityId'],
-                    request_params['properties']
+                    request_params['properties'],
+                    request_params['startTime'],
             )
 
     def query(self, **kwargs):
