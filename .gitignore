@@ -1,5 +1,6 @@
 .vscode/
 plugin_deployment/
+build/
 *.log
 *.pyc
 

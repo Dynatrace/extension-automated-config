@@ -25,6 +25,8 @@ Version 3.0.0 brings support for audit log that use the newer v2 format to now b
 ## Development ⌨️
 - An optimal development environment should use Python 3.8 and pipenv
 - Dependencies needed are requests, pytz and a current plugin-sdk available from your Dynatrace environment
+- Simulate Command: plugin_sdk.exe simulate_plugin -p src -r properties.json
+- Build Command: plugin_sdk.exe build_plugin -p src --no_upload -d build
 
 ## Contact 🤝
 Created by George Teodorescu and Aaron Philipose - feel free to contact us!
