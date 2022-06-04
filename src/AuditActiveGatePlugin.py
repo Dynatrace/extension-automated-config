@@ -148,6 +148,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                     request_params['entityId'],
                     request_params['properties'],
                     request_params['startTime'],
+                    request_params['endTime'],
             )
 
     def query(self, **kwargs):
