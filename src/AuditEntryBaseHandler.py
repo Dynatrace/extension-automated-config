@@ -22,24 +22,6 @@ from RequestHandler import RequestHandler # pylint: disable=unused-import
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-def has_event_log(
-        self,
-        entity_id: str
-) -> bool:
-    """Checks if the entity has event log
-
-    Args:
-        entity_id (str): Entity ID to be checked
-
-    Returns:
-        bool: True if Entity has Event Log
-    """
-    entities_with_logs = ["APPLICATION-", "SERVICE-", "HOST-", "PROCESS_GROUP-"]
-    for entity in entities_with_logs:
-        if entity_id.startswith(entity):
-            return True
-    return False
-
 class AuditEntryBaseHandler():
     '''
     Base Class for Audit Entry to be Processed and Pushed.
