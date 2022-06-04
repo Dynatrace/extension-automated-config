@@ -70,7 +70,7 @@ class AuditPluginRemote(RemoteBasePlugin):
             'Authorization': 'Api-Token ' + config['apiToken'].strip(),
         }
 
-        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
+        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000 # pylint: disable=invalid-name
 
         self.timezone = pytz.timezone(config['timezone'])
         self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
@@ -90,7 +90,11 @@ class AuditPluginRemote(RemoteBasePlugin):
                 + "filter=category(\"CONFIG\")&sort=timestamp" \
                 + f"&from={self.start_time}&to={self.end_time}"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
-        return changes['auditLogs']
+        if changes and 'apiToken' in changes.keys():
+            return changes['auditLogs']
+        logging.info("Payload had no AuditLogs")
+        logging.debug("AuditLogs %s", str(changes))
+        return None
 
     def get_api_version(self, audit_log_entry: dict) -> int:
         """Identify processing method required by parsing entry for API version used
@@ -121,7 +125,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             bool: If user is a detected system user
         """
-        return bool(re.match("^\\w+ \\w+ \\w+$", user))
+        return bool(re.match("^\\w+ \\w+ \\w+$", user)) or user == 'system'
 
     def process_audit_payload(self, audit_logs: List[dict]) -> None:
         """Process audit list and trigger annotation posting for matching Monitored Entities
@@ -134,6 +138,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
         for audit_log_entry in audit_logs:
             if self.is_system_user(str(audit_log_entry['user'])):
+                logging.info("Is System User %s", str(audit_log_entry['user']))
                 continue
             api_version = self.get_api_version(audit_log_entry)
             if api_version == 1:
@@ -158,5 +163,6 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.end_time = floor(datetime.now().timestamp()*1000)
         if self.end_time - self.start_time >= self.pollingInterval:
             audit_logs = self.get_audit_logs()
-            self.process_audit_payload(audit_logs)
+            if audit_logs:
+                self.process_audit_payload(audit_logs)
             self.start_time = self.end_time + 1

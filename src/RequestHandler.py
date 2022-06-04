@@ -46,7 +46,13 @@ class RequestHandler():
             dict: JSON response from Dynatrace API endpoint
         """
         response = self.make_dt_api_request("GET", endpoint, json_payload, params)
-        return response.json()
+        try:
+            response_json = response.json()
+        except requests.exceptions.JSONDecodeError:
+            logging.info("Response did not container JSON")
+        except AttributeError:
+            return None
+        return response_json
 
     def make_dt_api_request(
             self,
@@ -65,14 +71,18 @@ class RequestHandler():
         #TODO - ADAPT DOCSTRING TO NEW FORMAT
         '''
         while True:
-            response = requests.request(
-                    http_method,
-                    f"{self.url}{endpoint}",
-                    json=json_payload,
-                    headers=self.headers,
-                    verify=self.verify_ssl,
-                    params=params
-            )
+            try:
+                response = requests.request(
+                        http_method,
+                        f"{self.url}{endpoint}",
+                        json=json_payload,
+                        headers=self.headers,
+                        verify=self.verify_ssl,
+                        params=params
+                )
+            except requests.exceptions.ConnectionError:
+                logger.info("Cannot connect to Dynatrace Tenant")
+                return None
             if response.status_code == 429:
                 logger.info("[RequestHandler] AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
