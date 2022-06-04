@@ -80,7 +80,13 @@ class RequestHandler():
                 break
         return response
 
-    def post_annotations(self, entity_id: str, properties: dict) -> None:
+    def post_annotations(
+            self,
+            entity_id: str,
+            properties: dict,
+            start_time: int = None,
+            end_time: int = None
+    ) -> None:
         """Post annoations to Dynatrace entity event log
 
         Args:
@@ -91,6 +97,8 @@ class RequestHandler():
         json_payload = {
             "eventType": "CUSTOM_ANNOTATION",
             "title" : "Automated Configuration Audit",
+            "startTime": start_time,
+            "endTime": end_time,
             "timeout": 0,
             "entitySelector": f"entityId ({entity_id})",
             "properties": properties
