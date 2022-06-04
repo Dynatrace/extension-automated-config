@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 """
 Library for Base Audit Entry Handler
 """
@@ -125,3 +125,18 @@ class AuditEntryBaseHandler():
             pgi_list = self.get_processes_from_group(entity_id, request_handler)
             entity_id = self.process_group_instance_to_entity_str(pgi_list)
         return entity_id
+
+    def has_event_log(self, entity_id: str) -> bool:
+        """Checks if the entity has event log
+
+        Args:
+            entity_id (str): Entity ID to be checked
+
+        Returns:
+            bool: True if Entity has Event Log
+        """
+        entities_with_logs = ["APPLICATION-", "SERVICE-", "HOST-", "PROCESS_GROUP-"]
+        for entity in entities_with_logs:
+            if entity_id.startswith(entity):
+                return True
+        return False
