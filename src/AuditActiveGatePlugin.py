@@ -76,6 +76,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time = None
         self.verify_ssl = config['verify_ssl']
+        self.event_logs_only: bool = config['event_logs_only']
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
@@ -95,6 +96,24 @@ class AuditPluginRemote(RemoteBasePlugin):
         logging.info("Payload had no AuditLogs")
         logging.debug("AuditLogs %s", str(changes))
         return None
+
+    def has_event_log(
+            self,
+            entity_id: str
+    ) -> bool:
+        """Checks if the entity has event log
+
+        Args:
+            entity_id (str): Entity ID to be checked
+
+        Returns:
+            bool: True if Entity has Event Log
+        """
+        entities_with_logs = ["APPLICATION-", "SERVICE-", "HOST-", "PROCESS_GROUP-"]
+        for entity in entities_with_logs:
+            if entity_id.startswith(entity):
+                return True
+        return False
 
     def get_api_version(self, audit_log_entry: dict) -> int:
         """Identify processing method required by parsing entry for API version used
@@ -149,12 +168,13 @@ class AuditPluginRemote(RemoteBasePlugin):
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
                 logger.info('[Main] %(log_id)s ENTRY NOT MATCHED')
 
-            request_handler.post_annotations(
-                    request_params['entityId'],
-                    request_params['properties'],
-                    request_params['startTime'],
-                    request_params['endTime'],
-            )
+            if not self.event_logs_only or self.has_event_log:
+                request_handler.post_annotations(
+                        request_params['entityId'],
+                        request_params['properties'],
+                        request_params['startTime'],
+                        request_params['endTime'],
+                )
 
     def query(self, **kwargs):
         '''
