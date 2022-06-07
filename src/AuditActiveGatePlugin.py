@@ -91,7 +91,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 + "filter=category(\"CONFIG\")&sort=timestamp" \
                 + f"&from={self.start_time}&to={self.end_time}"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
-        if changes and 'apiToken' in changes.keys():
+        if changes and 'auditLogs' in changes.keys():
             return changes['auditLogs']
         logging.info("Payload had no AuditLogs")
         logging.debug("AuditLogs %s", str(changes))
@@ -166,7 +166,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
-                logger.info('[Main] %(log_id)s ENTRY NOT MATCHED')
+                logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
 
             if not self.event_logs_only or self.has_event_log:
                 request_handler.post_annotations(
