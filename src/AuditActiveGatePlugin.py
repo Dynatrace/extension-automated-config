@@ -55,11 +55,19 @@ class AuditPluginRemote(RemoteBasePlugin):
         super().__init__(**kwargs)
         self.start_time=floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time=None
+        self.entities_with_logs = [
+                "APPLICATION-",
+                "SERVICE-",
+                "HOST-",
+                "PROCESS_GROUP_INSTANCE-",
+                "SYNTHETIC_TEST-",
+                "HTTP_CHECK-"
+        ]
 
     def initialize(self, **kwargs):
         """Initialize the plugin with variables provided by user in the UI
         """
-        logger.info("Config: %s", self.config)
+        logger.info("[Main] Config: %s", self.config)
         config = kwargs['config']
 
         self.url = config['url'].strip()
@@ -76,6 +84,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time = None
         self.verify_ssl = config['verify_ssl']
+        self.event_logs_only: bool = config['event_logs_only']
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
@@ -90,11 +99,29 @@ class AuditPluginRemote(RemoteBasePlugin):
                 + "filter=category(\"CONFIG\")&sort=timestamp" \
                 + f"&from={self.start_time}&to={self.end_time}"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
-        if changes and 'apiToken' in changes.keys():
+        if changes and 'auditLogs' in changes.keys():
             return changes['auditLogs']
-        logging.info("Payload had no AuditLogs")
-        logging.debug("AuditLogs %s", str(changes))
+        logger.info("[Main] Payload had no AuditLogs")
+        logger.debug("[Main] AuditLogs %s", str(changes))
         return None
+
+    def has_event_log(
+            self,
+            entity_id: str
+    ) -> bool:
+        """Checks if the entity has event log
+
+        Args:
+            entity_id (str): Entity ID to be checked
+
+        Returns:
+            bool: True if Entity has Event Log
+        """
+
+        for entity in self.entities_with_logs:
+            if entity_id.startswith(entity, 1):
+                return True
+        return False
 
     def get_api_version(self, audit_log_entry: dict) -> int:
         """Identify processing method required by parsing entry for API version used
@@ -147,14 +174,17 @@ class AuditPluginRemote(RemoteBasePlugin):
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
-                logger.info('[Main] %(log_id)s ENTRY NOT MATCHED')
+                logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
 
-            request_handler.post_annotations(
-                    request_params['entityId'],
-                    request_params['properties'],
-                    request_params['startTime'],
-                    request_params['endTime'],
-            )
+            # Ordered for short-circuiting
+            logger.debug("[Main] EntityID: %s", request_params['entityId'])
+            if not self.event_logs_only or self.has_event_log(request_params['entityId']):
+                request_handler.post_annotations(
+                        request_params['entityId'],
+                        request_params['properties'],
+                        request_params['startTime'],
+                        request_params['endTime'],
+                )
 
     def query(self, **kwargs):
         '''
