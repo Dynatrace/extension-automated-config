@@ -175,6 +175,7 @@ class AuditPluginRemote(RemoteBasePlugin):
             else:
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
                 logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
+                continue
 
             # Ordered for short-circuiting
             logger.debug("[Main] EntityID: %s", request_params['entityId'])
