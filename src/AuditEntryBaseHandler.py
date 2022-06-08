@@ -104,7 +104,7 @@ class AuditEntryBaseHandler():
         if len(all_instances_str) > 0:
             all_instances_str = all_instances_str[:-1]
         pgi_list_str = f"{all_instances_str}"
-        logger.info("PGI STRING: %s", pgi_list_str)
+        logger.debug("[AuditEntryBase] PGI STRING: %s", pgi_list_str)
         return pgi_list_str
 
     def get_all_entities(

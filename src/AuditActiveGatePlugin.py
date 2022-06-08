@@ -67,7 +67,7 @@ class AuditPluginRemote(RemoteBasePlugin):
     def initialize(self, **kwargs):
         """Initialize the plugin with variables provided by user in the UI
         """
-        logger.info("Config: %s", self.config)
+        logger.info("[Main] Config: %s", self.config)
         config = kwargs['config']
 
         self.url = config['url'].strip()
@@ -101,8 +101,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
         if changes and 'auditLogs' in changes.keys():
             return changes['auditLogs']
-        logging.info("Payload had no AuditLogs")
-        logging.debug("AuditLogs %s", str(changes))
+        logger.info("[Main] Payload had no AuditLogs")
+        logger.debug("[Main] AuditLogs %s", str(changes))
         return None
 
     def has_event_log(
@@ -119,7 +119,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         """
 
         for entity in self.entities_with_logs:
-            if entity_id.startswith(entity):
+            if entity_id.startswith(entity, 1):
                 return True
         return False
 
@@ -177,6 +177,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
 
             # Ordered for short-circuiting
+            logger.debug("[Main] EntityID: %s", request_params['entityId'])
             if not self.event_logs_only or self.has_event_log(request_params['entityId']):
                 request_handler.post_annotations(
                         request_params['entityId'],
