@@ -59,7 +59,7 @@ class AuditPluginRemote(RemoteBasePlugin):
                 "APPLICATION-",
                 "SERVICE-",
                 "HOST-",
-                "PROCESS_GROUP-",
+                "PROCESS_GROUP_INSTANCE-",
                 "SYNTHETIC_TEST-",
                 "HTTP_CHECK-"
         ]
