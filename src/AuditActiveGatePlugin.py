@@ -55,6 +55,14 @@ class AuditPluginRemote(RemoteBasePlugin):
         super().__init__(**kwargs)
         self.start_time=floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time=None
+        self.entities_with_logs = [
+                "APPLICATION-",
+                "SERVICE-",
+                "HOST-",
+                "PROCESS_GROUP-",
+                "SYNTHETIC_TEST-",
+                "HTTP_CHECK-"
+        ]
 
     def initialize(self, **kwargs):
         """Initialize the plugin with variables provided by user in the UI
@@ -109,8 +117,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             bool: True if Entity has Event Log
         """
-        entities_with_logs = ["APPLICATION-", "SERVICE-", "HOST-", "PROCESS_GROUP-"]
-        for entity in entities_with_logs:
+
+        for entity in self.entities_with_logs:
             if entity_id.startswith(entity):
                 return True
         return False
@@ -168,7 +176,8 @@ class AuditPluginRemote(RemoteBasePlugin):
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
                 logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
 
-            if not self.event_logs_only or self.has_event_log:
+            # Ordered for short-circuiting
+            if not self.event_logs_only or self.has_event_log(request_params['entityId']):
                 request_handler.post_annotations(
                         request_params['entityId'],
                         request_params['properties'],
