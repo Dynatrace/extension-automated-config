@@ -51,6 +51,9 @@ class AuditPluginRemote(RemoteBasePlugin):
     Returns:
         None
     """
+    # No real way to avoid a lot of instance attributes since it's the
+    # only way to retreive settings defined by the user via Dynatrace UI
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.start_time=floor(datetime.now().timestamp()*1000) - self.pollingInterval
@@ -85,6 +88,8 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.end_time = None
         self.verify_ssl = config['verify_ssl']
         self.event_logs_only: bool = config['event_logs_only']
+        self.git_backup_app: str = config['git_backup_app']
+        self.git_backup_token: str = config['git_backup_token']
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
