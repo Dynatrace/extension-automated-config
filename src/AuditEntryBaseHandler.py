@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 """
 Library for Base Audit Entry Handler
 """
 import logging
 from typing import List
-from RequestHandler import RequestHandler # pylint: disable=unused-import
+from DTRequestHandler import DTRequestHandler # pylint: disable=unused-import
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -30,13 +30,13 @@ class AuditEntryBaseHandler():
     def extract_info(
             self,
             audit_log_entry: dict,
-            request_handler : 'RequestHandler' # pylint: disable=unused-argument
+            request_handler : 'DTRequestHandler' # pylint: disable=unused-argument
     ) -> dict:
         """Extract info for annotations and processing from audit entry
 
         Args:
             audit_log_entry (dict): singular audit log entry from audit list
-            request_handler (RequestHandler): Request Handler to use in case expansion is needed
+            request_handler (DTRequestHandler): Request Handler to use when needed
 
         Returns:
             dict: dict with properties dict nested
@@ -56,20 +56,22 @@ class AuditEntryBaseHandler():
               "timestamp": timestamp,
               "patch" : patch,
               "logId": log_id,
-            }
+            },
+            'startTime': timestamp,
+            'endTime': timestamp,
         }
         return annotation_data
 
     def get_processes_from_group(
             self,
             process_group_id: str,
-            request_handler : 'RequestHandler'
+            request_handler : 'DTRequestHandler'
     ) -> List[str]:
         """Get all the Process Group Instances from a Process Group change
 
         Args:
             process_group_id (str): Process Group that needs to be investigated
-            request_handler (RequestHandler): Request Handler to query API
+            request_handler (DTRequestHandler): Request Handler to query API
 
         Returns:
             List[str]: List of progress group instances from progress group entity
@@ -102,19 +104,19 @@ class AuditEntryBaseHandler():
         if len(all_instances_str) > 0:
             all_instances_str = all_instances_str[:-1]
         pgi_list_str = f"{all_instances_str}"
-        logger.info("PGI STRING: %s", pgi_list_str)
+        logger.debug("[AuditEntryBase] PGI STRING: %s", pgi_list_str)
         return pgi_list_str
 
     def get_all_entities(
             self,
             entity_id: str,
-            request_handler: 'RequestHandler'
+            request_handler: 'DTRequestHandler'
     ) -> str:
         """Checks Entity if it needs to be exploded into a list of entities
 
         Args:
             entity_id (str): singular entity_id
-            request_handler (RequestHandler): Request Handler to query API
+            request_handler (DTRequestHandler): Request Handler to query API
 
         Returns:
             str: singular entity_id or list of entity_ids strung
