@@ -29,7 +29,7 @@ from typing import List
 import pytz
 import requests
 from ruxit.api.base_plugin import RemoteBasePlugin
-from RequestHandler import RequestHandler
+from DTRequestHandler import DTRequestHandler
 from AuditEntryV1Handler import AuditEntryV1Handler
 from AuditEntryV2Handler import AuditEntryV2Handler
 
@@ -99,7 +99,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             dict: Audit log entrys recorded from the audit API
         """
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
+        request_handler = DTRequestHandler(self.url, self. headers, self.verify_ssl)
         audit_log_endpoint = "/api/v2/auditlogs?" \
                 + "filter=category(\"CONFIG\")&sort=timestamp" \
                 + f"&from={self.start_time}&to={self.end_time}"
@@ -167,7 +167,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         """
         audit_v1_entry = AuditEntryV1Handler()
         audit_v2_entry = AuditEntryV2Handler()
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
+        request_handler = DTRequestHandler(self.url, self. headers, self.verify_ssl)
         for audit_log_entry in audit_logs:
             if self.is_system_user(str(audit_log_entry['user'])):
                 logging.info("Is System User %s", str(audit_log_entry['user']))
