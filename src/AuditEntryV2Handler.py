@@ -15,7 +15,7 @@
 """Processing audit entry information that is formatted in V1 style
 """
 import re
-from RequestHandler import RequestHandler # pylint: disable=unused-import
+from DTRequestHandler import DTRequestHandler # pylint: disable=unused-import
 from AuditEntryBaseHandler import AuditEntryBaseHandler
 
 class AuditEntryV2Handler(AuditEntryBaseHandler):
@@ -24,12 +24,12 @@ class AuditEntryV2Handler(AuditEntryBaseHandler):
     Args:
         AuditEntryBaseHandler (Class): Parent Class for shared operations
     """
-    def extract_info(self, audit_log_entry, request_handler: 'RequestHandler'):
+    def extract_info(self, audit_log_entry, request_handler: 'DTRequestHandler'):
         """Extract info for annotations and processing from audit entry
 
         Args:
             audit_log_entry (dict): singular audit log entry from audit list
-            request_handler (RequestHandler): Request Handler to use in case expansion is needed
+            request_handler (DTRequestHandler): Request Handler to use in case expansion is needed
 
         Returns:
             dict: dict with entity_id and properties dict nested
