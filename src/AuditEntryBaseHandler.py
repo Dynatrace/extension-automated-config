@@ -15,6 +15,7 @@
 """
 Library for Base Audit Entry Handler
 """
+from abc import abstractmethod
 import logging
 from typing import List
 from DTRequestHandler import DTRequestHandler # pylint: disable=unused-import
@@ -125,3 +126,19 @@ class AuditEntryBaseHandler():
             pgi_list = self.get_processes_from_group(entity_id, request_handler)
             entity_id = self.process_group_instance_to_entity_str(pgi_list)
         return entity_id
+
+    @abstractmethod
+    def get_current_config(
+            self,
+            entity_id: str,
+            request_handler: 'DTRequestHandler'
+    ) -> dict:
+        """Get current configuration for entity so it can be cacked up
+
+        Args:
+            entity_id (str): Entity ID to pull info
+            request_handler (DTRequestHandler): Request Handler to call to Dynatrace
+
+        Returns:
+            dict: Current JSON config of entity
+        """
