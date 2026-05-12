@@ -1,3 +1,7 @@
+⚠️ This repository has been archived and is no longer maintained.
+The code is available for historical reference or archival purposes.
+
+
 # dt-automated-config-audit 📝
 With multiple Dyantrace admins managing a tenant, It can often be difficult to track accountability of Dynatrace configuration changes. The Dynatrace Automated Configuration Audit uses the flexible Dynatrace API to report configuration changes made to Dynatrace Entities and reports it into the Event feed of the entity altered. This allows for a clear visalization and accountability of changes to you Applications, Services, Processes and Hosts. This is an ActiveGate extension that only needs to sit on 1 Dynatrace ActiveGate to operate.
 
