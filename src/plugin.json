@@ -27,7 +27,10 @@
     {"key": "apiToken", "type": "Password"},
     {"key": "pollingInterval", "type": "Integer", "defaultValue": 1},
     {"key": "verify_ssl", "type": "Boolean", "defaultValue": true},
-    {"key": "timezone", "type": "String", "defaultValue": "UTC"}
+    {"key": "timezone", "type": "String", "defaultValue": "UTC"},
+    {"key": "event_logs_only", "type": "Boolean", "defaultValue": false},
+    {"key": "git_backup_app", "type": "String", "defaultValue": ""},
+    {"key": "git_backup_token", "type": "String", "defaultValue": ""}
   ],
   "configUI": {
     "displayName": "Automated Configuration Audit",
@@ -36,7 +39,10 @@
       {"key": "apiToken", "displayName": "API Token with auditLogs.read, entities.read and events.ingest", "displayOrder": 2, "displayHint": "Current Token Format: dt.PUBLICSECTION.PRIVATESECTION"},
       {"key": "pollingInterval", "displayName": "Polling frequency (in minutes)", "displayOrder": 3, "displayHint": "For example: 5"},
       {"key": "verify_ssl", "displayName": "Verify URL SSL Certicate", "displayOrder": 4},
-      {"key": "timezone", "displayName": "Timezone", "displayOrder": 5, "displayHint": "For example: America/Chicago"}
+      {"key": "timezone", "displayName": "Timezone", "displayOrder": 5, "displayHint": "For example: America/Chicago"},
+      {"key": "event_logs_only", "displayName": "Only Post Events With Event Logs", "displayOrder": 6},
+      {"key": "git_backup_app", "displayName": "Git-Based App to Backup To. Valid options in Doc", "displayOrder": 7},
+      {"key": "git_backup_token", "displayName": "Git-Based App Access Token", "displayOrder": 8}
     ]
   }
 }

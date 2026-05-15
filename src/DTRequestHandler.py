@@ -21,7 +21,7 @@ import requests
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-class RequestHandler():
+class DTRequestHandler():
     """Request Handler for making API calls to Dynatrace
     """
     def __init__(self, base_url, headers, verify_ssl=True):
@@ -46,7 +46,13 @@ class RequestHandler():
             dict: JSON response from Dynatrace API endpoint
         """
         response = self.make_dt_api_request("GET", endpoint, json_payload, params)
-        return response.json()
+        try:
+            response_json = response.json()
+        except requests.exceptions.JSONDecodeError:
+            logging.info("Response did not container JSON")
+        except AttributeError:
+            return None
+        return response_json
 
     def make_dt_api_request(
             self,
@@ -65,22 +71,32 @@ class RequestHandler():
         #TODO - ADAPT DOCSTRING TO NEW FORMAT
         '''
         while True:
-            response = requests.request(
-                    http_method,
-                    f"{self.url}{endpoint}",
-                    json=json_payload,
-                    headers=self.headers,
-                    verify=self.verify_ssl,
-                    params=params
-            )
+            try:
+                response = requests.request(
+                        http_method,
+                        f"{self.url}{endpoint}",
+                        json=json_payload,
+                        headers=self.headers,
+                        verify=self.verify_ssl,
+                        params=params
+                )
+            except requests.exceptions.ConnectionError:
+                logger.info("Cannot connect to Dynatrace Tenant")
+                return None
             if response.status_code == 429:
-                logger.info("[RequestHandler] AUDIT - RATE LIMITED! SLEEPING...")
+                logger.info("[DTRequestHandler] AUDIT - RATE LIMITED! SLEEPING...")
                 sleep(response.headers['X-RateLimit-Reset']/1000000)
             else:
                 break
         return response
 
-    def post_annotations(self, entity_id: str, properties: dict) -> None:
+    def post_annotations(
+            self,
+            entity_id: str,
+            properties: dict,
+            start_time: int = None,
+            end_time: int = None
+    ) -> None:
         """Post annoations to Dynatrace entity event log
 
         Args:
@@ -91,16 +107,18 @@ class RequestHandler():
         json_payload = {
             "eventType": "CUSTOM_ANNOTATION",
             "title" : "Automated Configuration Audit",
+            "startTime": start_time,
+            "endTime": end_time,
             "timeout": 0,
             "entitySelector": f"entityId ({entity_id})",
             "properties": properties
         }
         response = self.make_dt_api_request("POST", endpoint, json_payload=json_payload)
         logger.info(
-                "[RequestHandler] Annotation for LOG_ID: %s,ENTITY_ID:%s : %s",
+                "[DTRequestHandler] Annotation for LOG_ID: %s,ENTITY_ID:%s : %s",
                 json_payload['properties']['logId'],
                 entity_id,
                 response.status_code
         )
-        logger.debug("[RequestHandler] Requests: %s", response.request)
-        logger.debug("[RequestHandler] Request Text: %s", response.text)
+        logger.debug("[DTRequestHandler] Requests: %s", response.request)
+        logger.debug("[DTRequestHandler] Request Text: %s", response.text)

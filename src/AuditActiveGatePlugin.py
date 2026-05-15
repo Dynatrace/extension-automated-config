@@ -29,7 +29,7 @@ from typing import List
 import pytz
 import requests
 from ruxit.api.base_plugin import RemoteBasePlugin
-from RequestHandler import RequestHandler
+from DTRequestHandler import DTRequestHandler
 from AuditEntryV1Handler import AuditEntryV1Handler
 from AuditEntryV2Handler import AuditEntryV2Handler
 
@@ -51,15 +51,26 @@ class AuditPluginRemote(RemoteBasePlugin):
     Returns:
         None
     """
+    # No real way to avoid a lot of instance attributes since it's the
+    # only way to retreive settings defined by the user via Dynatrace UI
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.start_time=floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time=None
+        self.entities_with_logs = [
+                "APPLICATION-",
+                "SERVICE-",
+                "HOST-",
+                "PROCESS_GROUP_INSTANCE-",
+                "SYNTHETIC_TEST-",
+                "HTTP_CHECK-"
+        ]
 
     def initialize(self, **kwargs):
         """Initialize the plugin with variables provided by user in the UI
         """
-        logger.info("Config: %s", self.config)
+        logger.info("[Main] Config: %s", self.config)
         config = kwargs['config']
 
         self.url = config['url'].strip()
@@ -70,12 +81,15 @@ class AuditPluginRemote(RemoteBasePlugin):
             'Authorization': 'Api-Token ' + config['apiToken'].strip(),
         }
 
-        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000
+        self.pollingInterval = int(config['pollingInterval']) * 60 * 1000 # pylint: disable=invalid-name
 
         self.timezone = pytz.timezone(config['timezone'])
         self.start_time = floor(datetime.now().timestamp()*1000) - self.pollingInterval
         self.end_time = None
         self.verify_ssl = config['verify_ssl']
+        self.event_logs_only: bool = config['event_logs_only']
+        self.git_backup_app: str = config['git_backup_app']
+        self.git_backup_token: str = config['git_backup_token']
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings() # pylint: disable=no-member
 
@@ -85,12 +99,34 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             dict: Audit log entrys recorded from the audit API
         """
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
+        request_handler = DTRequestHandler(self.url, self. headers, self.verify_ssl)
         audit_log_endpoint = "/api/v2/auditlogs?" \
                 + "filter=category(\"CONFIG\")&sort=timestamp" \
                 + f"&from={self.start_time}&to={self.end_time}"
         changes = request_handler.get_dt_api_json(audit_log_endpoint)
-        return changes['auditLogs']
+        if changes and 'auditLogs' in changes.keys():
+            return changes['auditLogs']
+        logger.info("[Main] Payload had no AuditLogs")
+        logger.debug("[Main] AuditLogs %s", str(changes))
+        return None
+
+    def has_event_log(
+            self,
+            entity_id: str
+    ) -> bool:
+        """Checks if the entity has event log
+
+        Args:
+            entity_id (str): Entity ID to be checked
+
+        Returns:
+            bool: True if Entity has Event Log
+        """
+
+        for entity in self.entities_with_logs:
+            if entity_id.startswith(entity, 1):
+                return True
+        return False
 
     def get_api_version(self, audit_log_entry: dict) -> int:
         """Identify processing method required by parsing entry for API version used
@@ -121,7 +157,7 @@ class AuditPluginRemote(RemoteBasePlugin):
         Returns:
             bool: If user is a detected system user
         """
-        return bool(re.match("^\\w+ \\w+ \\w+$", user))
+        return bool(re.match("^\\w+ \\w+ \\w+$", user)) or user == 'system'
 
     def process_audit_payload(self, audit_logs: List[dict]) -> None:
         """Process audit list and trigger annotation posting for matching Monitored Entities
@@ -131,9 +167,10 @@ class AuditPluginRemote(RemoteBasePlugin):
         """
         audit_v1_entry = AuditEntryV1Handler()
         audit_v2_entry = AuditEntryV2Handler()
-        request_handler = RequestHandler(self.url, self. headers, self.verify_ssl)
+        request_handler = DTRequestHandler(self.url, self. headers, self.verify_ssl)
         for audit_log_entry in audit_logs:
             if self.is_system_user(str(audit_log_entry['user'])):
+                logging.info("Is System User %s", str(audit_log_entry['user']))
                 continue
             api_version = self.get_api_version(audit_log_entry)
             if api_version == 1:
@@ -142,12 +179,18 @@ class AuditPluginRemote(RemoteBasePlugin):
                 request_params=audit_v2_entry.extract_info(audit_log_entry, request_handler)
             else:
                 log_id = str(audit_log_entry['logId']) # pylint: disable=unused-variable
-                logger.info('[Main] %(log_id)s ENTRY NOT MATCHED')
+                logger.info('[Main] %s ENTRY NOT MATCHED', log_id)
+                continue
 
-            request_handler.post_annotations(
-                    request_params['entityId'],
-                    request_params['properties']
-            )
+            # Ordered for short-circuiting
+            logger.debug("[Main] EntityID: %s", request_params['entityId'])
+            if not self.event_logs_only or self.has_event_log(request_params['entityId']):
+                request_handler.post_annotations(
+                        request_params['entityId'],
+                        request_params['properties'],
+                        request_params['startTime'],
+                        request_params['endTime'],
+                )
 
     def query(self, **kwargs):
         '''
@@ -156,5 +199,6 @@ class AuditPluginRemote(RemoteBasePlugin):
         self.end_time = floor(datetime.now().timestamp()*1000)
         if self.end_time - self.start_time >= self.pollingInterval:
             audit_logs = self.get_audit_logs()
-            self.process_audit_payload(audit_logs)
+            if audit_logs:
+                self.process_audit_payload(audit_logs)
             self.start_time = self.end_time + 1
